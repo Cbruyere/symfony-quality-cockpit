@@ -37,3 +37,21 @@ quality_cockpit:
 
 Compatibility currently follows the extracted source environment: PHP 8.4 and Symfony 7.4 or
 8.0. The Symfony 7.4 path remains to be verified in CI before it is advertised as supported.
+
+## Frontend integration
+
+The bundle ships Tailwind classes in its Twig templates and Stimulus controllers for the tabs and
+Infection filters. With Tailwind CLI and a custom JavaScript entrypoint, add the bundle templates
+to the host scan and register its controllers:
+
+```css
+@source "../../vendor/chrisdev/symfony-quality-cockpit/templates/**/*.twig";
+```
+
+```js
+import QualityTabsController from '../vendor/chrisdev/symfony-quality-cockpit/assets/controllers/quality_tabs_controller.js';
+import InfectionFiltersController from '../vendor/chrisdev/symfony-quality-cockpit/assets/controllers/infection_filters_controller.js';
+
+app.register('quality-tabs', QualityTabsController);
+app.register('infection-filters', InfectionFiltersController);
+```
