@@ -1,0 +1,16 @@
+<twig:UxCard>
+    {% set icon = {
+        Violations: 'bi:exclamation-triangle',
+        Couches: 'bi:layers',
+        Regles: 'bi:clipboard-check',
+        'Dependances interdites': 'bi:diagram-3',
+        'Score global': 'bi:shield-check'
+    }[metric.label]|default('bi:diagram-3') %}
+
+    <div class="relative overflow-hidden">
+        {{ ux_icon(icon, {class: 'pointer-events-none absolute right-0 top-0 h-12 w-12 text-cyan-300/10'}) }}
+        <p class="relative text-sm text-zinc-400">{{ metric.label }}</p>
+        <p class="{{ metric.level == 'success' ? 'text-green-300' : metric.level == 'warning' ? 'text-amber-300' : metric.level == 'danger' ? 'text-red-300' : 'text-zinc-300' }} relative mt-3 text-2xl font-semibold">{{ metric.formattedValue }}</p>
+    </div>
+</twig:UxCard>
+

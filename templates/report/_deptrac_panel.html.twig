@@ -1,0 +1,98 @@
+<div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+        <h2 class="flex items-center gap-2 text-2xl font-semibold text-white">
+            {{ ux_icon('bi:diagram-3', {class: 'h-5 w-5 text-cyan-300'}) }}
+            <span>Deptrac</span>
+        </h2>
+    </div>
+
+    {% if deptracReport.htmlIndexPath %}
+        <a
+            class="inline-flex items-center justify-center rounded border border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-200 hover:border-cyan-400 hover:text-cyan-200"
+            href="{{ path('quality_cockpit_deptrac_report', {path: deptracReport.htmlIndexPath}) }}"
+            target="_blank"
+            rel="noreferrer"
+        >
+            Rapport Deptrac
+        </a>
+    {% endif %}
+</div>
+
+{% if deptracReport.available and deptracReport.valid %}
+    <section class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        {% include '@QualityCockpit/report/_deptrac_metric.html.twig' with {metric: deptracReport.violationsMetric} only %}
+        {% include '@QualityCockpit/report/_deptrac_metric.html.twig' with {metric: deptracReport.layersMetric} only %}
+        {% include '@QualityCockpit/report/_deptrac_metric.html.twig' with {metric: deptracReport.rulesMetric} only %}
+        {% include '@QualityCockpit/report/_deptrac_metric.html.twig' with {metric: deptracReport.forbiddenDependenciesMetric} only %}
+        {% include '@QualityCockpit/report/_deptrac_metric.html.twig' with {metric: deptracReport.scoreMetric} only %}
+    </section>
+
+    <details class="mt-4 rounded border border-zinc-800 bg-zinc-900">
+        <summary class="flex cursor-pointer flex-col gap-2 px-5 py-4 text-left sm:flex-row sm:items-center sm:justify-between">
+            <span>
+                <span class="block text-lg font-semibold text-white">Violations d'architecture</span>
+                {% if deptracReport.generatedAt %}
+                    <span class="mt-1 block text-sm text-zinc-400">Genere le {{ deptracReport.generatedAt|date('d/m/Y H:i') }}</span>
+                {% endif %}
+            </span>
+            {% include '@QualityCockpit/components/quality_status_badge.html.twig' with {severity: assessment.severity, label: deptracReport.violations|length ~ ' violation' ~ (deptracReport.violations|length == 1 ? '' : 's')} only %}
+        </summary>
+
+        <div class="overflow-x-auto border-t border-zinc-800">
+            <table class="w-full min-w-[1120px] text-left text-sm">
+                <thead class="border-b border-zinc-800 text-xs uppercase text-zinc-500">
+                    <tr>
+                        <th class="px-5 py-3 font-medium">Classe source</th>
+                        <th class="px-5 py-3 font-medium">Classe cible</th>
+                        <th class="px-5 py-3 font-medium">Regle violee</th>
+                        <th class="px-5 py-3 font-medium">Couche</th>
+                        <th class="px-5 py-3 font-medium">Gravite</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-800">
+                    {% for violation in deptracReport.violations %}
+                        <tr class="hover:bg-zinc-800/60">
+                            <td class="px-5 py-4">
+                                <a
+                                    class="font-medium text-white hover:text-cyan-200"
+                                    href="{{ path('quality_cockpit_deptrac_violation_detail', {id: violation.id}) }}"
+                                >
+                                    {{ violation.sourceClass }}
+                                </a>
+                                <p class="mt-1 text-xs text-zinc-500">{{ violation.sourceLayer }}</p>
+                            </td>
+                            <td class="px-5 py-4">
+                                <p class="break-all font-medium text-zinc-200">{{ violation.targetClass }}</p>
+                                <p class="mt-1 text-xs text-zinc-500">{{ violation.targetLayer }}</p>
+                            </td>
+                            <td class="px-5 py-4 text-zinc-300">{{ violation.rule }}</td>
+                            <td class="px-5 py-4 text-zinc-300">{{ violation.sourceLayer }} vers {{ violation.targetLayer }}</td>
+                            <td class="px-5 py-4">
+                                {% if violation.level == 'danger' %}
+                                    <twig:UxBadge variant="danger" label="Critique" />
+                                {% elseif violation.level == 'warning' %}
+                                    <twig:UxBadge variant="warning" label="Attention" />
+                                {% else %}
+                                    <twig:UxBadge label="{{ violation.severity }}" />
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td class="px-5 py-6 text-sm text-zinc-400" colspan="5">
+                                Aucune violation d'architecture detectee.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </details>
+{% else %}
+    <section class="mt-5 rounded border border-zinc-800 bg-zinc-900 p-6">
+        <h3 class="text-lg font-semibold text-white">Aucun rapport Deptrac disponible</h3>
+        <p class="mt-2 text-sm text-zinc-300">
+            Genere un rapport JSON Deptrac dans le sous-dossier configure, puis recharge cette page.
+        </p>
+    </section>
+{% endif %}

@@ -1,0 +1,21 @@
+<twig:UxCard>
+    <div class="flex items-start justify-between gap-3">
+        <div>
+            <p class="text-sm font-medium text-zinc-400">{{ metric.label }}</p>
+            <p class="{{ metric.level == 'success' ? 'text-green-300' : metric.level == 'warning' ? 'text-amber-300' : metric.level == 'danger' ? 'text-red-300' : 'text-zinc-200' }} mt-3 text-2xl font-semibold">
+                {{ metric.formattedValue }}
+            </p>
+        </div>
+
+        {% if metric.level == 'success' %}
+            {{ ux_icon('bi:shield-check', {class: 'h-5 w-5 text-green-300'}) }}
+        {% elseif metric.level == 'warning' %}
+            {{ ux_icon('bi:exclamation-triangle', {class: 'h-5 w-5 text-amber-300'}) }}
+        {% elseif metric.level == 'danger' %}
+            {{ ux_icon('bi:bug', {class: 'h-5 w-5 text-red-300'}) }}
+        {% else %}
+            {{ ux_icon('bi:shield', {class: 'h-5 w-5 text-zinc-500'}) }}
+        {% endif %}
+    </div>
+</twig:UxCard>
+

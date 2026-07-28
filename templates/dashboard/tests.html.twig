@@ -1,0 +1,150 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard qualite{% endblock %}
+
+{% block body %}
+    <main class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[1600px] flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-semibold text-white">Analyse Qualité</h1>
+
+        {% include '@QualityCockpit/report/_quality_health_summary.html.twig' with {qualityHealth: qualityHealth} only %}
+
+        <section class="rounded border border-zinc-800/90 bg-zinc-950/40 p-5 shadow-sm" aria-labelledby="quality-summary-title">
+            <div class="flex flex-col gap-1">
+                <h2 id="quality-summary-title" class="text-xl font-semibold text-white">Résumé global</h2>
+                <p class="text-sm text-zinc-400">Vue d'ensemble permanente des indicateurs qualité.</p>
+            </div>
+
+            <div class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+                {% for metric in qualityHealth.metrics %}
+                    {% include '@QualityCockpit/components/quality_metric_card.html.twig' with {metric: metric} only %}
+                {% endfor %}
+            </div>
+        </section>
+
+        <section
+            class="rounded border border-zinc-800/90 bg-zinc-950/40 p-3 shadow-sm sm:p-5"
+            data-controller="quality-tabs"
+            data-quality-tabs-active-class="border-green-400 bg-green-400/10 text-green-100 shadow-sm"
+            data-quality-tabs-inactive-class="border-transparent text-zinc-400 hover:border-zinc-700 hover:bg-zinc-900 hover:text-zinc-100"
+        >
+            <div class="overflow-x-auto pb-1">
+                <div class="flex min-w-max gap-2" role="tablist" aria-label="Outils qualite">
+                    <a
+                        id="quality-tab-phpunit"
+                        class="rounded border border-green-400 bg-green-400/10 px-4 py-3 text-sm font-semibold text-green-100 shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-green-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+                        href="#phpunit"
+                        role="tab"
+                        aria-selected="true"
+                        aria-controls="quality-panel-phpunit"
+                        tabindex="0"
+                        data-quality-tabs-target="tab"
+                        data-quality-tabs-tab-param="phpunit"
+                        data-action="click->quality-tabs#select keydown->quality-tabs#navigate"
+                    >
+                        PHPUnit
+                    </a>
+                    <a id="quality-tab-infection" class="rounded border border-transparent px-4 py-3 text-sm font-semibold text-zinc-400 outline-none hover:border-zinc-700 hover:bg-zinc-900 hover:text-zinc-100 focus-visible:ring-2 focus-visible:ring-green-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950" href="#infection" role="tab" aria-selected="false" aria-controls="quality-panel-infection" tabindex="-1" data-quality-tabs-target="tab" data-quality-tabs-tab-param="infection" data-action="click->quality-tabs#select keydown->quality-tabs#navigate">Infection</a>
+                    <a
+                        id="quality-tab-phpmetrics"
+                        class="rounded border border-transparent px-4 py-3 text-sm font-semibold text-zinc-400 outline-none hover:border-zinc-700 hover:bg-zinc-900 hover:text-zinc-100 focus-visible:ring-2 focus-visible:ring-green-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+                        href="#phpmetrics"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="quality-panel-phpmetrics"
+                        tabindex="-1"
+                        data-quality-tabs-target="tab"
+                        data-quality-tabs-tab-param="phpmetrics"
+                        data-action="click->quality-tabs#select keydown->quality-tabs#navigate"
+                    >
+                        PhpMetrics
+                    </a>
+                    <a
+                        id="quality-tab-deptrac"
+                        class="rounded border border-transparent px-4 py-3 text-sm font-semibold text-zinc-400 outline-none hover:border-zinc-700 hover:bg-zinc-900 hover:text-zinc-100 focus-visible:ring-2 focus-visible:ring-green-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+                        href="#deptrac"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="quality-panel-deptrac"
+                        tabindex="-1"
+                        data-quality-tabs-target="tab"
+                        data-quality-tabs-tab-param="deptrac"
+                        data-action="click->quality-tabs#select keydown->quality-tabs#navigate"
+                    >
+                        Deptrac
+                    </a>
+                    <a
+                        id="quality-tab-composer-audit"
+                        class="rounded border border-transparent px-4 py-3 text-sm font-semibold text-zinc-400 outline-none hover:border-zinc-700 hover:bg-zinc-900 hover:text-zinc-100 focus-visible:ring-2 focus-visible:ring-green-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+                        href="#composer-audit"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="quality-panel-composer-audit"
+                        tabindex="-1"
+                        data-quality-tabs-target="tab"
+                        data-quality-tabs-tab-param="composer-audit"
+                        data-action="click->quality-tabs#select keydown->quality-tabs#navigate"
+                    >
+                        Composer Audit
+                    </a>
+                </div>
+            </div>
+
+            <div class="mt-5">
+                <section
+                    id="quality-panel-phpunit"
+                    class="rounded border border-zinc-800 bg-zinc-950/40 p-4 sm:p-5"
+                    role="tabpanel"
+                    aria-labelledby="quality-tab-phpunit"
+                    tabindex="0"
+                    data-quality-tabs-target="panel"
+                    data-quality-tabs-panel-param="phpunit"
+                >
+                    {% include '@QualityCockpit/report/_phpunit_panel.html.twig' with {report: report, assessment: qualityHealth.metric('PHPUnit')} only %}
+                </section>
+                <section
+                    id="quality-panel-phpmetrics"
+                    class="rounded border border-zinc-800 bg-zinc-950/40 p-4 sm:p-5"
+                    role="tabpanel"
+                    aria-labelledby="quality-tab-phpmetrics"
+                    tabindex="0"
+                    hidden
+                    data-quality-tabs-target="panel"
+                    data-quality-tabs-panel-param="phpmetrics"
+                >
+                    {% include '@QualityCockpit/report/_phpmetrics_panel.html.twig' with {phpMetricsReport: phpMetricsReport, assessment: qualityHealth.metric('PhpMetrics')} only %}
+                </section>
+
+                <section
+                    id="quality-panel-deptrac"
+                    class="rounded border border-zinc-800 bg-zinc-950/40 p-4 sm:p-5"
+                    role="tabpanel"
+                    aria-labelledby="quality-tab-deptrac"
+                    tabindex="0"
+                    hidden
+                    data-quality-tabs-target="panel"
+                    data-quality-tabs-panel-param="deptrac"
+                >
+                    {% include '@QualityCockpit/report/_deptrac_panel.html.twig' with {deptracReport: deptracReport, assessment: qualityHealth.metric('Deptrac')} only %}
+                </section>
+
+                <section
+                    id="quality-panel-composer-audit"
+                    class="rounded border border-zinc-800 bg-zinc-950/40 p-4 sm:p-5"
+                    role="tabpanel"
+                    aria-labelledby="quality-tab-composer-audit"
+                    tabindex="0"
+                    hidden
+                    data-quality-tabs-target="panel"
+                    data-quality-tabs-panel-param="composer-audit"
+                >
+                    {% include '@QualityCockpit/report/_composer_audit_panel.html.twig' with {composerAuditReport: composerAuditReport, assessment: qualityHealth.metric('Composer Audit')} only %}
+                </section>
+
+                <section id="quality-panel-infection" class="rounded border border-zinc-800 bg-zinc-950/40 p-4 sm:p-5" role="tabpanel" aria-labelledby="quality-tab-infection" tabindex="0" hidden data-quality-tabs-target="panel" data-quality-tabs-panel-param="infection">
+                    {% include '@QualityCockpit/report/_infection_panel.html.twig' with {infectionReport: infectionReport, assessment: qualityHealth.metric('Infection')} only %}
+                </section>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+

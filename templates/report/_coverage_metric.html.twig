@@ -1,0 +1,15 @@
+<div class="min-w-32">
+    <div class="flex items-center justify-between gap-3">
+        <span class="{{ metric.level == 'success' ? 'text-green-300' : metric.level == 'warning' ? 'text-amber-300' : metric.level == 'danger' ? 'text-red-300' : 'text-zinc-400' }} font-medium">
+            {{ metric.percent }}
+        </span>
+        <span class="text-xs text-zinc-500">{{ metric.ratio }}</span>
+    </div>
+    <div class="mt-2 h-1.5 overflow-hidden rounded bg-zinc-800">
+        <div
+            class="{{ metric.level == 'success' ? 'bg-green-400' : metric.level == 'warning' ? 'bg-amber-400' : metric.level == 'danger' ? 'bg-red-400' : 'bg-zinc-600' }} h-full"
+            style="width: {{ metric.percent == 'n/a' ? '0%' : metric.percent }}"
+        ></div>
+    </div>
+</div>
+

@@ -1,0 +1,148 @@
+{% extends 'base.html.twig' %}
+
+{% macro metric(classMetric, key) %}
+    {% set metric = key == 'maintainability'
+        ? classMetric.maintainabilityIndex
+        : key == 'complexity'
+            ? classMetric.cyclomaticComplexity
+            : key == 'maxMethodComplexity'
+                ? classMetric.maxMethodComplexity
+                : key == 'coupling'
+                    ? classMetric.coupling
+                    : key == 'afferentCoupling'
+                        ? classMetric.afferentCoupling
+                        : key == 'efferentCoupling'
+                            ? classMetric.efferentCoupling
+                            : key == 'cohesion'
+                                ? classMetric.lackOfCohesion
+                                : classMetric.halsteadVolume
+    %}
+
+    <span class="{{ metric.level == 'success' ? 'text-green-300' : metric.level == 'warning' ? 'text-amber-300' : metric.level == 'danger' ? 'text-red-300' : 'text-zinc-400' }} font-medium">
+        {{ metric.formattedValue }}
+    </span>
+{% endmacro %}
+
+{% macro metricLabel(key) %}
+    {{ key == 'maintainability'
+        ? 'Maintainability'
+        : key == 'complexity'
+            ? 'Complexite'
+            : key == 'maxMethodComplexity'
+                ? 'Complexite methode'
+                : key == 'coupling'
+                    ? 'Coupling'
+                    : key == 'afferentCoupling'
+                        ? 'Coupling entrant'
+                        : key == 'efferentCoupling'
+                            ? 'Coupling sortant'
+                            : key == 'cohesion'
+                                ? 'LCOM'
+                                : 'Volume'
+    }}
+{% endmacro %}
+
+{% import _self as phpmetrics %}
+
+{% block title %}{{ detail.title }} - PhpMetrics{% endblock %}
+
+{% block body %}
+    <main class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[1600px] flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div class="space-y-2">
+                <a class="text-sm font-medium text-cyan-300 hover:text-cyan-200" href="{{ path('quality_cockpit_test_results') }}">
+                    Qualite du code
+                </a>
+                <p class="text-sm font-medium uppercase text-cyan-300">{{ detail.eyebrow }}</p>
+                <h1 class="text-3xl font-semibold text-white">{{ detail.title }}</h1>
+                <p class="max-w-3xl text-sm text-zinc-400">{{ detail.description }}</p>
+            </div>
+
+            <a
+                class="inline-flex items-center justify-center rounded border border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-200 hover:border-cyan-400 hover:text-cyan-200"
+                href="{{ path('quality_cockpit_phpmetrics_report', {path: detail.rawReportPath}) }}"
+                target="_blank"
+                rel="noreferrer"
+            >
+                HTML PhpMetrics
+            </a>
+        </div>
+
+        <section class="grid gap-4 md:grid-cols-3">
+            <twig:UxCard title="Classes">
+                <p class="text-3xl font-semibold text-white">{{ detail.classes|length }}</p>
+                <p class="mt-2 text-sm text-zinc-400">Elements affiches dans cette vue.</p>
+            </twig:UxCard>
+
+            <twig:UxCard title="Critiques">
+                {% set criticalCount = detail.classes|filter(classMetric => classMetric.critical)|length %}
+                <p class="{{ criticalCount > 0 ? 'text-red-300' : 'text-green-300' }} text-3xl font-semibold">{{ criticalCount }}</p>
+                <p class="mt-2 text-sm text-zinc-400">Classes avec au moins un indicateur critique.</p>
+            </twig:UxCard>
+
+            <twig:UxCard title="Lecture">
+                <div class="flex flex-wrap gap-2">
+                    <twig:UxBadge variant="success" label="Bonne sante" />
+                    <twig:UxBadge variant="warning" label="Attention" />
+                    <twig:UxBadge variant="danger" label="Critique" />
+                </div>
+            </twig:UxCard>
+        </section>
+
+        <section class="rounded border border-zinc-800 bg-zinc-900">
+            <div class="flex flex-col gap-2 px-5 py-4 text-left sm:flex-row sm:items-center sm:justify-between">
+                <span>
+                    <span class="block text-lg font-semibold text-white">Classes</span>
+                    <span class="mt-1 block text-sm text-zinc-400">Liste detaillee de cette section PhpMetrics.</span>
+                </span>
+                <span class="rounded bg-slate-800 px-2.5 py-1 text-sm font-medium text-slate-300">{{ detail.classes|length }}</span>
+            </div>
+
+            <div class="overflow-x-auto border-t border-zinc-800">
+                <table class="w-full min-w-[1040px] text-left text-sm">
+                    <thead class="border-b border-zinc-800 text-xs uppercase text-zinc-500">
+                        <tr>
+                            <th class="px-5 py-3 font-medium">Classe</th>
+                            {% for key in detail.metricKeys %}
+                                <th class="px-5 py-3 font-medium">{{ phpmetrics.metricLabel(key) }}</th>
+                            {% endfor %}
+                            <th class="px-5 py-3 font-medium">Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-800">
+                        {% for classMetric in detail.classes %}
+                            <tr class="hover:bg-zinc-800/60">
+                                <td class="px-5 py-4">
+                                    <a
+                                        class="font-medium text-white hover:text-cyan-200"
+                                        href="{{ path('quality_cockpit_phpmetrics_detail', {id: classMetric.id}) }}"
+                                    >
+                                        {{ classMetric.shortName }}
+                                    </a>
+                                    <p class="mt-1 break-all text-xs text-zinc-500">{{ classMetric.namespace }}</p>
+                                </td>
+                                {% for key in detail.metricKeys %}
+                                    <td class="px-5 py-4">{{ phpmetrics.metric(classMetric, key) }}</td>
+                                {% endfor %}
+                                <td class="px-5 py-4">
+                                    {% if classMetric.critical %}
+                                        <twig:UxBadge variant="danger" label="Critique" />
+                                    {% else %}
+                                        <twig:UxBadge variant="success" label="Bonne sante" />
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td class="px-5 py-6 text-sm text-zinc-400" colspan="{{ detail.metricKeys|length + 2 }}">
+                                    Aucune classe disponible pour cette section.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+

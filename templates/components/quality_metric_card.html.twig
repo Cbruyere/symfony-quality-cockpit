@@ -1,0 +1,9 @@
+<article class="flex min-h-36 flex-col rounded border border-zinc-800 bg-zinc-900 p-4" aria-label="{{ metric.title }} : {{ metric.qualifier }}">
+    <p class="text-sm text-zinc-400">{{ metric.title }}</p>
+    <p class="mt-3 text-2xl font-semibold {{ metric.severity.textClasses() }}">{{ metric.value }}</p>
+    {% if metric.message %}<p class="mt-2 text-sm text-zinc-400">{{ metric.message }}</p>{% endif %}
+    <div class="mt-auto pt-3">
+        {% include '@QualityCockpit/components/quality_status_badge.html.twig' with {severity: metric.severity, label: metric.qualifier, icon: 'bi:circle-fill'} only %}
+    </div>
+</article>
+

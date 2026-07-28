@@ -1,0 +1,29 @@
+<section class="rounded border border-zinc-800/90 bg-zinc-950/40 p-5 shadow-sm" aria-labelledby="quality-health-title">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+            <p id="quality-health-title" class="text-xl font-semibold text-white">Santé globale du projet</p>
+            <div class="mt-3">
+                {% include '@QualityCockpit/components/quality_status_badge.html.twig' with {severity: qualityHealth.severity, label: qualityHealth.qualifier, icon: 'bi:heart-pulse', large: true} only %}
+            </div>
+        </div>
+        <dl class="grid grid-cols-2 gap-3 text-sm">
+            <div class="rounded border border-zinc-800 bg-zinc-900 px-4 py-3"><dt class="text-zinc-400">Alertes critiques</dt><dd class="mt-1 text-xl font-semibold text-white">{{ qualityHealth.actionCount() }}</dd></div>
+            <div class="rounded border border-zinc-800 bg-zinc-900 px-4 py-3"><dt class="text-zinc-400">Points à améliorer</dt><dd class="mt-1 text-xl font-semibold text-white">{{ qualityHealth.improvementCount() }}</dd></div>
+        </dl>
+    </div>
+    {% if qualityHealth.actions %}
+        <div class="mt-5 border-t border-zinc-800 pt-4">
+            <h3 class="text-xl font-semibold text-white">Actions prioritaires</h3>
+            <ul class="mt-2 grid gap-2 md:grid-cols-3">
+                {% for action in qualityHealth.actions %}
+                    <li class="rounded border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm transition hover:border-cyan-400/50 hover:bg-zinc-800">
+                        {% if action.target %}<a class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300" href="{{ action.target }}" aria-label="{{ action.title }}">{% endif %}
+                            <span class="font-medium text-white">{{ action.title }}</span><span class="mt-1 block text-zinc-400">{{ action.description }}</span>
+                        {% if action.target %}</a>{% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+</section>
+

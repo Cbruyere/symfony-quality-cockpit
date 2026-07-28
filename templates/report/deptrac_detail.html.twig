@@ -1,0 +1,84 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Violation Deptrac{% endblock %}
+
+{% block body %}
+    <main class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[1600px] flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div class="space-y-2">
+                <a class="text-sm font-medium text-cyan-300 hover:text-cyan-200" href="{{ path('quality_cockpit_test_results') }}">
+                    Architecture
+                </a>
+                <h1 class="break-all text-3xl font-semibold text-white">Violation Deptrac</h1>
+                <p class="max-w-3xl break-all text-sm text-zinc-400">{{ detail.sourceClass }} vers {{ detail.targetClass }}</p>
+            </div>
+
+            <a
+                class="inline-flex items-center justify-center rounded border border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-200 hover:border-cyan-400 hover:text-cyan-200"
+                href="{{ path('quality_cockpit_deptrac_report', {path: detail.htmlReportPath}) }}"
+                target="_blank"
+                rel="noreferrer"
+            >
+                HTML Deptrac
+            </a>
+        </div>
+
+        <section class="grid gap-4 lg:grid-cols-3">
+            <twig:UxCard title="Source">
+                <p class="break-all text-sm font-medium text-white">{{ detail.sourceClass }}</p>
+                <p class="mt-2 text-sm text-zinc-400">{{ detail.sourceLayer }}</p>
+            </twig:UxCard>
+
+            <twig:UxCard title="Cible">
+                <p class="break-all text-sm font-medium text-white">{{ detail.targetClass }}</p>
+                <p class="mt-2 text-sm text-zinc-400">{{ detail.targetLayer }}</p>
+            </twig:UxCard>
+
+            <twig:UxCard title="Gravite">
+                {% if detail.level == 'danger' %}
+                    <twig:UxBadge variant="danger" label="Critique" />
+                {% elseif detail.level == 'warning' %}
+                    <twig:UxBadge variant="warning" label="Attention" />
+                {% else %}
+                    <twig:UxBadge label="{{ detail.severity }}" />
+                {% endif %}
+            </twig:UxCard>
+        </section>
+
+        <section class="grid gap-6 xl:grid-cols-[420px_minmax(0,1fr)]">
+            <aside class="space-y-4">
+                <section class="rounded border border-zinc-800 bg-zinc-900 p-5">
+                    <h2 class="text-lg font-semibold text-white">Regle</h2>
+                    <p class="mt-3 text-sm text-zinc-300">{{ detail.rule }}</p>
+                </section>
+
+                <section class="rounded border border-zinc-800 bg-zinc-900 p-5">
+                    <h2 class="text-lg font-semibold text-white">Emplacement</h2>
+                    <dl class="mt-4 space-y-3 text-sm">
+                        <div class="flex items-start justify-between gap-4">
+                            <dt class="text-zinc-400">Fichier</dt>
+                            <dd class="break-all text-right font-medium text-white">{{ detail.sourceFile ?? 'n/a' }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-4">
+                            <dt class="text-zinc-400">Ligne</dt>
+                            <dd class="font-medium text-white">{{ detail.line ?? 'n/a' }}</dd>
+                        </div>
+                    </dl>
+                </section>
+            </aside>
+
+            <section class="rounded border border-zinc-800 bg-zinc-900">
+                <div class="border-b border-zinc-800 px-5 py-4">
+                    <h2 class="text-lg font-semibold text-white">Extrait</h2>
+                </div>
+
+                {% if detail.codeExcerpt %}
+                    <pre class="overflow-x-auto p-5 text-sm text-zinc-200"><code>{{ detail.codeExcerpt }}</code></pre>
+                {% else %}
+                    <p class="px-5 py-6 text-sm text-zinc-400">Aucun extrait de code disponible dans le rapport Deptrac.</p>
+                {% endif %}
+            </section>
+        </section>
+    </main>
+{% endblock %}
+

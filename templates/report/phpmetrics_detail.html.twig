@@ -1,0 +1,143 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ detail.shortName }} - PhpMetrics{% endblock %}
+
+{% block body %}
+    {% set hasMethodComplexity = detail.methods|filter(method => method.cyclomaticComplexity is not null)|length > 0 %}
+
+    <main class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[1600px] flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div class="space-y-2">
+                <a class="text-sm font-medium text-cyan-300 hover:text-cyan-200" href="{{ path('quality_cockpit_test_results') }}">
+                    Qualite du code
+                </a>
+                <h1 class="break-all text-3xl font-semibold text-white">{{ detail.shortName }}</h1>
+                <p class="break-all text-sm text-zinc-400">{{ detail.name }}</p>
+            </div>
+
+            <a
+                class="inline-flex items-center justify-center rounded border border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-200 hover:border-cyan-400 hover:text-cyan-200"
+                href="{{ path('quality_cockpit_phpmetrics_report', {path: detail.htmlReportPath}) }}"
+                target="_blank"
+                rel="noreferrer"
+            >
+                HTML PhpMetrics
+            </a>
+        </div>
+
+        <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {% include '@QualityCockpit/report/_phpmetrics_metric.html.twig' with {metric: detail.maintainabilityIndex, section: 'maintainability'} only %}
+            {% include '@QualityCockpit/report/_phpmetrics_metric.html.twig' with {metric: detail.cyclomaticComplexity, section: 'complexity'} only %}
+            {% include '@QualityCockpit/report/_phpmetrics_metric.html.twig' with {metric: detail.coupling, section: 'coupling'} only %}
+            {% include '@QualityCockpit/report/_phpmetrics_metric.html.twig' with {metric: detail.lackOfCohesion, section: 'cohesion'} only %}
+            {% include '@QualityCockpit/report/_phpmetrics_metric.html.twig' with {metric: detail.maxMethodComplexity, section: 'complexity'} only %}
+            {% include '@QualityCockpit/report/_phpmetrics_metric.html.twig' with {metric: detail.afferentCoupling, section: 'coupling'} only %}
+            {% include '@QualityCockpit/report/_phpmetrics_metric.html.twig' with {metric: detail.efferentCoupling, section: 'coupling'} only %}
+            {% include '@QualityCockpit/report/_phpmetrics_metric.html.twig' with {metric: detail.halsteadVolume, section: 'volume'} only %}
+        </section>
+
+        <section class="grid gap-6 xl:grid-cols-[420px_minmax(0,1fr)]">
+            <aside class="space-y-4">
+                <section class="rounded border border-zinc-800 bg-zinc-900 p-5">
+                    <h2 class="text-lg font-semibold text-white">Resume</h2>
+                    <dl class="mt-4 space-y-3 text-sm">
+                        <div class="flex items-center justify-between gap-4">
+                            <dt class="text-zinc-400">Methodes hors accesseurs</dt>
+                            <dd class="font-medium text-white">{{ detail.methodsCount }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-4">
+                            <dt class="text-zinc-400">Methodes totales</dt>
+                            <dd class="font-medium text-white">{{ detail.methodsIncludingGettersSettersCount }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-4">
+                            <dt class="text-zinc-400">Publiques</dt>
+                            <dd class="font-medium text-white">{{ detail.publicMethodsCount }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-4">
+                            <dt class="text-zinc-400">Privees</dt>
+                            <dd class="font-medium text-white">{{ detail.privateMethodsCount }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-4">
+                            <dt class="text-zinc-400">Getters</dt>
+                            <dd class="font-medium text-white">{{ detail.getterMethodsCount }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-4">
+                            <dt class="text-zinc-400">WMC</dt>
+                            <dd class="font-medium text-white">{{ detail.weightedMethodCount }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-4">
+                            <dt class="text-zinc-400">Statut</dt>
+                            <dd class="{{ detail.critical ? 'bg-red-400/10 text-red-200' : 'bg-green-400/10 text-green-200' }} rounded px-2.5 py-1 font-medium">
+                                {{ detail.critical ? 'Critique' : 'Bonne sante' }}
+                            </dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section class="rounded border border-zinc-800 bg-zinc-900 p-5">
+                    <h2 class="text-lg font-semibold text-white">Dependances</h2>
+                    <p class="mt-2 text-sm text-zinc-400">
+                        {{ detail.dependencies|length }} relations disponibles pour un futur graphe.
+                    </p>
+                </section>
+            </aside>
+
+            <section class="rounded border border-zinc-800 bg-zinc-900">
+                <div class="border-b border-zinc-800 px-5 py-4">
+                    <h2 class="text-lg font-semibold text-white">{{ hasMethodComplexity ? 'Methodes les plus complexes' : 'Methodes detectees' }}</h2>
+                    {% if not hasMethodComplexity %}
+                        <p class="mt-1 text-sm text-zinc-400">PhpMetrics expose ici le role et la visibilite des methodes. La complexite detaillee par methode n'est pas fournie dans ce rapport.</p>
+                    {% endif %}
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[720px] text-left text-sm">
+                        <thead class="border-b border-zinc-800 text-xs uppercase text-zinc-500">
+                            <tr>
+                                <th class="px-5 py-3 font-medium">Methode</th>
+                                <th class="px-5 py-3 font-medium">Role</th>
+                                <th class="px-5 py-3 font-medium">Visibilite</th>
+                                {% if hasMethodComplexity %}
+                                    <th class="px-5 py-3 font-medium">Complexite cyclomatique</th>
+                                    <th class="px-5 py-3 font-medium">Niveau</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-800">
+                            {% for method in detail.methods|slice(0, 10) %}
+                                <tr class="hover:bg-zinc-800/60">
+                                    <td class="px-5 py-4 font-medium text-white">{{ method.name }}</td>
+                                    <td class="px-5 py-4">
+                                        <span class="{{ method.role == 'getter' ? 'bg-blue-400/10 text-blue-200' : method.role == 'setter' ? 'bg-amber-400/10 text-amber-200' : 'bg-zinc-800 text-zinc-300' }} rounded px-2.5 py-1 font-medium">
+                                            {{ method.role == 'standard' ? 'Methode' : method.role }}
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-4">
+                                        <span class="{{ method.visibility == 'public' ? 'bg-green-400/10 text-green-200' : method.visibility == 'private' ? 'bg-zinc-800 text-zinc-300' : 'bg-amber-400/10 text-amber-200' }} rounded px-2.5 py-1 font-medium">
+                                            {{ method.visibility == 'unknown' ? 'non precisee' : method.visibility }}
+                                        </span>
+                                    </td>
+                                    {% if hasMethodComplexity %}
+                                        <td class="px-5 py-4 text-zinc-300">{{ method.cyclomaticComplexity }}</td>
+                                        <td class="px-5 py-4">
+                                            <span class="{{ method.level == 'success' ? 'bg-green-400/10 text-green-200' : method.level == 'warning' ? 'bg-amber-400/10 text-amber-200' : method.level == 'danger' ? 'bg-red-400/10 text-red-200' : 'bg-zinc-800 text-zinc-300' }} rounded px-2.5 py-1 font-medium">
+                                                {{ method.level == 'success' ? 'Bonne sante' : method.level == 'warning' ? 'Attention' : method.level == 'danger' ? 'Critique' : 'n/a' }}
+                                            </span>
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td class="px-5 py-6 text-sm text-zinc-400" colspan="{{ hasMethodComplexity ? 5 : 3 }}">
+                                        Aucune metrique de methode disponible dans le rapport.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+    </main>
+{% endblock %}
+

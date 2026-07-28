@@ -1,0 +1,6 @@
+{% set size = large|default(false) ? 'px-4 py-2 text-base' : 'px-2.5 py-1 text-sm' %}
+<span class="inline-flex items-center gap-2 rounded border font-medium {{ size }} {{ severity.cssClasses() }}" title="{{ label }}">
+    {{ ux_icon(icon|default('bi:circle-fill'), {class: 'h-3 w-3', 'aria-hidden': 'true'}) }}
+    <span>{{ label }}</span>
+</span>
+

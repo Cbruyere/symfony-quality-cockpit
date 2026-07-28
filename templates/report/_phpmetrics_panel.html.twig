@@ -1,0 +1,110 @@
+<div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+        <h2 class="flex items-center gap-2 text-2xl font-semibold text-white">
+            {{ ux_icon('bi:speedometer2', {class: 'h-5 w-5 text-cyan-300'}) }}
+            <span>PhpMetrics</span>
+        </h2>
+    </div>
+
+    {% if phpMetricsReport.htmlIndexPath %}
+        <a
+            class="inline-flex items-center justify-center rounded border border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-200 hover:border-cyan-400 hover:text-cyan-200"
+            href="{{ path('quality_cockpit_phpmetrics_report', {path: phpMetricsReport.htmlIndexPath}) }}"
+            target="_blank"
+            rel="noreferrer"
+        >
+            Rapport PhpMetrics
+        </a>
+    {% endif %}
+</div>
+
+{% if phpMetricsReport.available %}
+    <section class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {% include '@QualityCockpit/report/_phpmetrics_metric.html.twig' with {metric: phpMetricsReport.averageMaintainabilityIndex, section: 'maintainability'} only %}
+        {% include '@QualityCockpit/report/_phpmetrics_metric.html.twig' with {metric: phpMetricsReport.averageCyclomaticComplexity, section: 'complexity'} only %}
+        {% include '@QualityCockpit/report/_phpmetrics_metric.html.twig' with {metric: phpMetricsReport.averageCoupling, section: 'coupling'} only %}
+        {% include '@QualityCockpit/report/_phpmetrics_metric.html.twig' with {metric: phpMetricsReport.averageLackOfCohesion, section: 'cohesion'} only %}
+        {% include '@QualityCockpit/report/_phpmetrics_metric.html.twig' with {metric: phpMetricsReport.averageHalsteadVolume, section: 'volume'} only %}
+        {% include '@QualityCockpit/report/_phpmetrics_metric.html.twig' with {
+            label: 'Classes analysees',
+            value: phpMetricsReport.totalClasses,
+            level: 'neutral',
+            section: 'classes'
+        } only %}
+        {% include '@QualityCockpit/report/_phpmetrics_metric.html.twig' with {
+            label: 'Classes critiques',
+            value: phpMetricsReport.criticalClassesCount,
+            level: phpMetricsReport.criticalClassesCount > 0 ? 'danger' : 'success',
+            section: 'violations'
+        } only %}
+    </section>
+
+    <details id="phpmetrics-flagged-classes" class="mt-4 rounded border border-zinc-800 bg-zinc-900" open>
+        <summary class="flex cursor-pointer flex-col gap-2 px-5 py-4 text-left sm:flex-row sm:items-center sm:justify-between">
+            <span>
+                <span class="block text-lg font-semibold text-white">Top 10 des classes les plus complexes</span>
+                {% if phpMetricsReport.generatedAt %}
+                    <span class="mt-1 block text-sm text-zinc-400">Genere le {{ phpMetricsReport.generatedAt|date('d/m/Y H:i') }}</span>
+                {% endif %}
+            </span>
+            {% include '@QualityCockpit/components/quality_status_badge.html.twig' with {severity: assessment.severity, label: phpMetricsReport.criticalClassesCount ~ ' classe' ~ (phpMetricsReport.criticalClassesCount == 1 ? '' : 's') ~ ' signalée' ~ (phpMetricsReport.criticalClassesCount == 1 ? '' : 's')} only %}
+        </summary>
+
+        <div class="overflow-x-auto border-t border-zinc-800">
+            <table class="w-full min-w-[980px] text-left text-sm">
+                <thead class="border-b border-zinc-800 text-xs uppercase text-zinc-500">
+                    <tr>
+                        <th class="px-5 py-3 font-medium">Classe</th>
+                        <th class="px-5 py-3 font-medium">Maintainability</th>
+                        <th class="px-5 py-3 font-medium">Complexite</th>
+                        <th class="px-5 py-3 font-medium">Coupling</th>
+                        <th class="px-5 py-3 font-medium">LCOM</th>
+                        <th class="px-5 py-3 font-medium">Volume</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-800">
+                    {% for classMetric in phpMetricsReport.topComplexClasses %}
+                        <tr class="hover:bg-zinc-800/60">
+                            <td class="px-5 py-4">
+                                <a
+                                    class="font-medium text-white hover:text-cyan-200"
+                                    href="{{ path('quality_cockpit_phpmetrics_detail', {id: classMetric.id}) }}"
+                                >
+                                    {{ classMetric.shortName }}
+                                </a>
+                                <p class="mt-1 text-xs text-zinc-500">{{ classMetric.namespace }}</p>
+                            </td>
+                            {% for metric in [
+                                classMetric.maintainabilityIndex,
+                                classMetric.cyclomaticComplexity,
+                                classMetric.coupling,
+                                classMetric.lackOfCohesion,
+                                classMetric.halsteadVolume
+                            ] %}
+                                <td class="px-5 py-4">
+                                    <span class="{{ metric.level == 'success' ? 'text-green-300' : metric.level == 'warning' ? 'text-amber-300' : metric.level == 'danger' ? 'text-red-300' : 'text-zinc-400' }} font-medium">
+                                        {{ metric.formattedValue }}
+                                    </span>
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td class="px-5 py-6 text-sm text-zinc-400" colspan="6">
+                                Aucune classe analysee par PhpMetrics.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </details>
+{% else %}
+    <section class="mt-5 rounded border border-zinc-800 bg-zinc-900 p-6">
+        <h3 class="text-lg font-semibold text-white">Aucun rapport PhpMetrics disponible</h3>
+        <p class="mt-2 text-sm text-zinc-300">
+            Genere un export PhpMetrics JSON, XML ou HTML avec `js/classes.js`, puis recharge cette page.
+        </p>
+    </section>
+{% endif %}
+
